@@ -7,7 +7,6 @@ namespace Northgard.GameWorld.Abstraction.Behaviours
     public interface IWorldBehaviour : IGameObjectBehaviour<World>
     {
         IEnumerable<ITerritoryBehaviour> Territories { get; }
-        new IWorldBehaviour Instantiate();
         void AddTerritory(ITerritoryBehaviour territory);
         void RemoveTerritory(ITerritoryBehaviour territory);
         event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;

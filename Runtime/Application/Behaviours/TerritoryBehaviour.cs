@@ -15,8 +15,6 @@ namespace Northgard.GameWorld.Application.Behaviours
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictRemoved;
 
-        public new ITerritoryBehaviour Instantiate() => base.Instantiate() as TerritoryBehaviour;
-
         public new void Destroy()
         {
             foreach (var naturalDistrict in naturalDistricts)
@@ -48,7 +46,22 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void UpdateNaturalDistricts()
         {
+            if (Data == null)
+            {
+                return;
+            }
             Data.naturalDistricts = naturalDistricts.Select(district => district.Data).ToList();
+        }
+
+        protected override void Initialize(Territory initialData)
+        {
+            if (initialData.isInstance)
+            {
+                base.Initialize(initialData);
+                Data.isCoast = initialData.isCoast;
+                Data.buildingCapacity = initialData.buildingCapacity;
+                Data.isDiscovered = initialData.isDiscovered;   
+            }
         }
     }
 }

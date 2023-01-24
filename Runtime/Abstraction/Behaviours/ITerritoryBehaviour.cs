@@ -7,8 +7,6 @@ namespace Northgard.GameWorld.Abstraction.Behaviours
     public interface ITerritoryBehaviour : IGameObjectBehaviour<Territory>
     {
         IEnumerable<INaturalDistrictBehaviour> NaturalDistricts { get; }
-        new ITerritoryBehaviour Instantiate();
-
         void AddNaturalDistrict(INaturalDistrictBehaviour naturalDistrict);
         void RemoveNaturalDistrict(INaturalDistrictBehaviour naturalDistrict);
         event TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;

@@ -5,7 +5,6 @@ namespace Northgard.GameWorld.Abstraction.Behaviours
 {
     public interface INaturalDistrictBehaviour : IGameObjectBehaviour<NaturalDistrict>
     {
-        new INaturalDistrictBehaviour Instantiate();
         public delegate void NaturalDistrictDelegate(INaturalDistrictBehaviour naturalDistrictBehaviour);
     }
 }

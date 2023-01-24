@@ -13,7 +13,7 @@ namespace Northgard.GameWorld.Application.Behaviours
         public IEnumerable<ITerritoryBehaviour> Territories => territories;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
-        public new IWorldBehaviour Instantiate() => base.Instantiate() as WorldBehaviour;
+        public IWorldBehaviour Instantiate() => base.Instantiate() as WorldBehaviour;
 
         public new void Destroy()
         {
@@ -46,7 +46,19 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void UpdateTerritories()
         {
+            if (Data == null)
+            {
+                return;
+            }
             Data.territories = territories.Select(territory => territory.Data).ToList();
+        }
+
+        protected override void Initialize(World initialData)
+        {
+            if (initialData.isInstance)
+            {
+                base.Initialize(initialData);
+            }
         }
     }
 }

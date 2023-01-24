@@ -18,17 +18,17 @@ namespace Northgard.GameWorld.Configurations
         
         public IWorldBehaviour FindWorldPrefab(string worldId)
         {
-            return worldPrefabs.FirstOrDefault(wp => wp.Data.id == worldId);
+            return worldPrefabs.FirstOrDefault(wp => wp.Data.prefabId == worldId);
         }
 
         public ITerritoryBehaviour FindTerritoryPrefab(string territoryId)
         {
-            return territoryPrefabs.FirstOrDefault(wp => wp.Data.id == territoryId);
+            return territoryPrefabs.FirstOrDefault(wp => wp.Data.prefabId == territoryId);
         }
 
         public INaturalDistrictBehaviour FindNaturalDistrictPrefab(string naturalDistrictId)
         {
-            return naturalDistrictPrefabs.FirstOrDefault(wp => wp.Data.id == naturalDistrictId);
+            return naturalDistrictPrefabs.FirstOrDefault(wp => wp.Data.prefabId == naturalDistrictId);
         }
     }
 }

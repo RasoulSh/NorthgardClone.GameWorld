@@ -6,6 +6,12 @@ namespace Northgard.GameWorld.Application.Behaviours
 {
     internal class NaturalDistrictBehaviour : GameObjectBehaviour<NaturalDistrict>, INaturalDistrictBehaviour
     {
-        public new INaturalDistrictBehaviour Instantiate() => base.Instantiate() as INaturalDistrictBehaviour;
+        protected override void Initialize(NaturalDistrict initialData)
+        {
+            if (initialData.isInstance)
+            {
+                base.Initialize(initialData);
+            }
+        }
     }
 }

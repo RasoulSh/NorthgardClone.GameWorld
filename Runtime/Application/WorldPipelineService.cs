@@ -17,13 +17,13 @@ namespace Northgard.GameWorld.Application
         public IEnumerable<NaturalDistrict> NaturalDistrictPrefabs =>
             config.NaturalDistrictPrefabs.Select(wp => wp.Data);
         public IWorldBehaviour World { get; private set; }
-        public void SetWorld(string worldId)
+        public void SetWorld(World world)
         {
             if (World != null)
             {
                 DestroyWorld();
             }
-            World = InstantiateWorld(worldId);
+            World = InstantiateWorld(world);
         }
 
         public void DestroyWorld()
@@ -32,32 +32,25 @@ namespace Northgard.GameWorld.Application
             World = null;
         }
 
-        private IWorldBehaviour InstantiateWorld(string worldId)
+        private IWorldBehaviour InstantiateWorld(World world)
         {
-            var worldPrefab = config.FindWorldPrefab(worldId);
-            var worldInstance = worldPrefab.Instantiate();
-            worldInstance.SetPosition(worldPlace.position);
-            worldInstance.SetRotation(worldPlace.rotation);
-            return worldInstance;
+            var worldPrefab = config.FindWorldPrefab(world.prefabId);
+            var worldInstance = worldPrefab.Instantiate(world);
+            return worldInstance as IWorldBehaviour;
         }
 
-        public ITerritoryBehaviour InstantiateTerritory(string territoryId, Vector3 initialPosition, Quaternion initialRotation)
+        public ITerritoryBehaviour InstantiateTerritory(Territory territory)
         {
-            var territoryPrefab = config.FindTerritoryPrefab(territoryId);
-            var territoryInstance = territoryPrefab.Instantiate();
-            territoryInstance.SetPosition(initialPosition);
-            territoryInstance.SetRotation(initialRotation);
-            return territoryInstance;
+            var territoryPrefab = config.FindTerritoryPrefab(territory.prefabId);
+            var territoryInstance = territoryPrefab.Instantiate(territory);
+            return territoryInstance as ITerritoryBehaviour;
         }
 
-        public INaturalDistrictBehaviour InstantiateNaturalDistrict(string naturalDistrictId, Vector3 initialPosition,
-            Quaternion initialRotation)
+        public INaturalDistrictBehaviour InstantiateNaturalDistrict(NaturalDistrict naturalDistrict)
         {
-            var naturalDistrictPrefab = config.FindNaturalDistrictPrefab(naturalDistrictId);
-            var naturalDistrictInstance = naturalDistrictPrefab.Instantiate();
-            naturalDistrictInstance.SetPosition(initialPosition);
-            naturalDistrictInstance.SetRotation(initialRotation);
-            return naturalDistrictInstance;
+            var naturalDistrictPrefab = config.FindNaturalDistrictPrefab(naturalDistrict.prefabId);
+            var naturalDistrictInstance = naturalDistrictPrefab.Instantiate(naturalDistrict);
+            return naturalDistrictInstance as INaturalDistrictBehaviour;
         }
     }
 }

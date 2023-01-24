@@ -11,12 +11,10 @@ namespace Northgard.GameWorld.Abstraction
         IEnumerable<Territory> TerritoryPrefabs { get; }
         IEnumerable<NaturalDistrict> NaturalDistrictPrefabs { get; }
         public IWorldBehaviour World { get; }
-        void SetWorld(string worldId);
+        void SetWorld(World world);
 
-        ITerritoryBehaviour InstantiateTerritory(string territoryId, Vector3 initialPosition,
-            Quaternion initialRotation);
-        INaturalDistrictBehaviour InstantiateNaturalDistrict(string naturalDistrictId, Vector3 initialPosition,
-            Quaternion initialRotation);
+        ITerritoryBehaviour InstantiateTerritory(Territory territory);
+        INaturalDistrictBehaviour InstantiateNaturalDistrict(NaturalDistrict naturalDistrict);
         void DestroyWorld();
     }
 }
