@@ -12,7 +12,8 @@ namespace Northgard.GameWorld.Entities
     {
         public bool isCoast;
         public int buildingCapacity;
-        [HideInInspector] public List<NaturalDistrict> naturalDistricts;
+        [HideInInspector] public List<string> naturalDistricts;
+        [HideInInspector] public List<string> connectedTerritories;
         [ReadOnlyField] public bool isDiscovered;
 
         public delegate void TerritoryDelegate(Territory territory);

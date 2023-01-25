@@ -15,7 +15,7 @@ namespace Northgard.GameWorld.Application
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictRemoved;
-        
+
         public void NewWorld()
         {
             throw new System.NotImplementedException();

@@ -3,17 +3,19 @@ using System.Linq;
 using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
+using Northgard.GameWorld.Mediation.Commands;
 using UnityEngine;
 
 namespace Northgard.GameWorld.Application.Behaviours
 {
     internal class WorldBehaviour : GameObjectBehaviour<World>, IWorldBehaviour
     {
-        [SerializeField] private List<TerritoryBehaviour> territories;
+        private List<TerritoryBehaviour> _territories;
+        private List<TerritoryBehaviour> territories => _territories ??= new List<TerritoryBehaviour>();
         public IEnumerable<ITerritoryBehaviour> Territories => territories;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
-        public IWorldBehaviour Instantiate() => base.Instantiate() as WorldBehaviour;
+        public new IWorldBehaviour Instantiate() => base.Instantiate() as WorldBehaviour;
 
         public new void Destroy()
         {
@@ -24,11 +26,16 @@ namespace Northgard.GameWorld.Application.Behaviours
             base.Destroy();
         }
 
-        public void AddTerritory(ITerritoryBehaviour territory)
+        public void AddTerritory(ITerritoryBehaviour territory) => AddTerritory(territory, false);
+
+        private void AddTerritory(ITerritoryBehaviour territory, bool ignoreNotify)
         {
             territories.Add(territory as TerritoryBehaviour);
-            UpdateTerritories();
-            OnTerritoryAdded?.Invoke(territory);
+            if (ignoreNotify == false)
+            {
+                UpdateTerritories();
+                OnTerritoryAdded?.Invoke(territory);   
+            }
         }
 
         public void RemoveTerritory(ITerritoryBehaviour territory)
@@ -46,18 +53,26 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void UpdateTerritories()
         {
+            #if UNITY_EDITOR
             if (Data == null)
             {
                 return;
             }
-            Data.territories = territories.Select(territory => territory.Data).ToList();
+            #endif
+            Data.territories = territories.Select(territory => territory != null ? Data.id : null).ToList();
         }
 
-        protected override void Initialize(World initialData)
+        public override void Initialize(World initialData)
         {
-            if (initialData.isInstance)
+            if (initialData.isInstance == false)
             {
-                base.Initialize(initialData);
+                return;
+            }
+            base.Initialize(initialData);
+            foreach (var territoryId in initialData.territories)
+            {
+                var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
+                AddTerritory(territory, true);
             }
         }
     }

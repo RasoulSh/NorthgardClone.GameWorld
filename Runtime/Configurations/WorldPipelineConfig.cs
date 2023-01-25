@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Application.Behaviours;
@@ -12,9 +13,9 @@ namespace Northgard.GameWorld.Configurations
         [SerializeField] private WorldBehaviour[] worldPrefabs;
         [SerializeField] private TerritoryBehaviour[] territoryPrefabs;
         [SerializeField] private NaturalDistrictBehaviour[] naturalDistrictPrefabs;
-        public IWorldBehaviour[] WorldPrefabs => worldPrefabs as IWorldBehaviour[];
-        public ITerritoryBehaviour[] TerritoryPrefabs => territoryPrefabs as ITerritoryBehaviour[];
-        public INaturalDistrictBehaviour[] NaturalDistrictPrefabs => naturalDistrictPrefabs as INaturalDistrictBehaviour[];
+        public IEnumerable<IWorldBehaviour> WorldPrefabs => worldPrefabs;
+        public IEnumerable<ITerritoryBehaviour> TerritoryPrefabs => territoryPrefabs;
+        public IEnumerable<INaturalDistrictBehaviour> NaturalDistrictPrefabs => naturalDistrictPrefabs;
         
         public IWorldBehaviour FindWorldPrefab(string worldId)
         {

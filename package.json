@@ -1,6 +1,6 @@
 {
   "name": "com.northgard.gameworld",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Northgard.GameWorld",
   "description": "Northgard Game World Service",
   "unity": "2021.1",

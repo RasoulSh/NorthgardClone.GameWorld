@@ -8,7 +8,7 @@ namespace Northgard.GameWorld.Entities
     [Serializable]
     public class World : GameObjectEntity
     {
-        [HideInInspector] public List<Territory> territories;
+        [HideInInspector] public List<string> territories;
 
         public delegate void WorldDelegate(World world);
         public delegate void WorldIdDelegate(string worldId);
