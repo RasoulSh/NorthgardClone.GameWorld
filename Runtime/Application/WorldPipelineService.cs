@@ -25,6 +25,8 @@ namespace Northgard.GameWorld.Application
         private World worldData;
         private Dictionary<Territory, ITerritoryBehaviour> territores;
         private Dictionary<NaturalDistrict, INaturalDistrictBehaviour> naturalDistricts;
+        public IEnumerable<ITerritoryBehaviour> Territories => territores.Values;
+        public IEnumerable<INaturalDistrictBehaviour> NaturalDistricts => naturalDistricts.Values;
         
         private void OnEnable()
         {
