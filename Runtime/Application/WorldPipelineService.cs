@@ -8,6 +8,8 @@ using Northgard.GameWorld.Configurations;
 using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
 using UnityEngine;
+using Zenject;
+using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application
 {
@@ -15,6 +17,7 @@ namespace Northgard.GameWorld.Application
         ICommandHandler<FindTerritoryMCmd, ITerritoryBehaviour>,
         ICommandHandler<FindNaturalDistrictMCmd, INaturalDistrictBehaviour>
     {
+        [Inject] private ILogger _logger;
         [SerializeField] private WorldPipelineConfig config;
         [SerializeField] private Transform worldPlace;
         public IEnumerable<World> WorldPrefabs => config.WorldPrefabs.Select(wp => wp.Data);
@@ -40,11 +43,15 @@ namespace Northgard.GameWorld.Application
         
         public void SetWorld(World world)
         {
+            if (world == null)
+            {
+                _logger.LogError("You cannot set world to null", this);
+                return;
+            }
             if (World != null)
             {
                 DestroyWorld();
             }
-
             territores = new Dictionary<Territory, ITerritoryBehaviour>();
             naturalDistricts = new Dictionary<NaturalDistrict, INaturalDistrictBehaviour>();
             World = InstantiateWorld(world);
@@ -52,6 +59,11 @@ namespace Northgard.GameWorld.Application
 
         public void DestroyWorld()
         {
+            if (World == null)
+            {
+                _logger.LogError("There is no world to destroy", this);
+                return;
+            }
             World.Destroy();
             World = null;
         }
@@ -66,6 +78,11 @@ namespace Northgard.GameWorld.Application
 
         public ITerritoryBehaviour InstantiateTerritory(Territory territory)
         {
+            if (territory == null)
+            {
+                _logger.LogError("The territory you want to instantiate in null", this);
+                return null;
+            }
             var territoryPrefab = config.FindTerritoryPrefab(territory.prefabId);
             var territoryInstance = territoryPrefab.Instantiate();
             territores.Add(territory.isInstance ? territory : territoryInstance.Data, territoryInstance as ITerritoryBehaviour);
@@ -74,6 +91,11 @@ namespace Northgard.GameWorld.Application
 
         public INaturalDistrictBehaviour InstantiateNaturalDistrict(NaturalDistrict naturalDistrict)
         {
+            if (naturalDistrict == null)
+            {
+                _logger.LogError("The natural district you want to instantiate in null", this);
+                return null;
+            }
             var naturalDistrictPrefab = config.FindNaturalDistrictPrefab(naturalDistrict.prefabId);
             var naturalDistrictInstance = naturalDistrictPrefab.Instantiate();
             naturalDistricts.Add(naturalDistrict.isInstance ? naturalDistrict : naturalDistrictInstance.Data, naturalDistrictInstance as INaturalDistrictBehaviour);

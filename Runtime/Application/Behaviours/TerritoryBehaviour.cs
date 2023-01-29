@@ -4,12 +4,14 @@ using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
-using UnityEngine;
+using Zenject;
+using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application.Behaviours
 {
     internal class TerritoryBehaviour : GameObjectBehaviour<Territory>, ITerritoryBehaviour
     {
+        [Inject] private ILogger _logger;
         private List<TerritoryBehaviour> _connectedTerritories;
         private List<NaturalDistrictBehaviour> _naturalDistricts;
         private List<NaturalDistrictBehaviour> naturalDistricts =>
@@ -37,6 +39,16 @@ namespace Northgard.GameWorld.Application.Behaviours
         
         private void AddNaturalDistrict(INaturalDistrictBehaviour naturalDistrict, bool ignoreNotify)
         {
+            if (naturalDistrict == null)
+            {
+                _logger.LogError("You are trying to add a null natural district to this territory", this);
+                return;
+            }
+            if (naturalDistricts.Contains(naturalDistrict as NaturalDistrictBehaviour))
+            {
+                _logger.LogWarning("The natural district has been added to this territory already", this);
+                return;
+            }
             naturalDistricts.Add(naturalDistrict as NaturalDistrictBehaviour);
             if (ignoreNotify == false)
             {
@@ -47,6 +59,17 @@ namespace Northgard.GameWorld.Application.Behaviours
         
         public void RemoveNaturalDistrict(INaturalDistrictBehaviour naturalDistrict)
         {
+            if (naturalDistrict == null)
+            {
+                _logger.LogError("You are trying to remove a null natural district", this);
+                return;
+            }
+
+            if (naturalDistricts.Contains(naturalDistrict as NaturalDistrictBehaviour) == false)
+            {
+                _logger.LogWarning("The natural district you are trying to remove doesn't include in this territory", this);
+                return;
+            }
             naturalDistricts.Remove(naturalDistrict as NaturalDistrictBehaviour);
             UpdateNaturalDistricts();
             OnNaturalDistrictRemoved?.Invoke(this, naturalDistrict);
@@ -56,6 +79,16 @@ namespace Northgard.GameWorld.Application.Behaviours
         
         private void AddTerritoryConnection(ITerritoryBehaviour connection, bool ignoreNotify)
         {
+            if (connection == null)
+            {
+                _logger.LogError("You are trying to add a null territory connection to this territory", this);
+                return;
+            }
+            if (_connectedTerritories.Contains(connection as TerritoryBehaviour))
+            {
+                _logger.LogWarning("The territory connection has been added to this territory already", this);
+                return;
+            }
             connectedTerritories.Add(connection as TerritoryBehaviour);
             if (ignoreNotify == false)
             {
@@ -66,6 +99,17 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         public void RemoveTerritoryConnection(ITerritoryBehaviour connection)
         {
+            if (connection == null)
+            {
+                _logger.LogError("You are trying to remove a null territory connection", this);
+                return;
+            }
+
+            if (_connectedTerritories.Contains(connection as TerritoryBehaviour) == false)
+            {
+                _logger.LogWarning("You are trying to remove a territory connection that doesn't exist", this);
+                return;
+            }
             connectedTerritories.Remove(connection as TerritoryBehaviour);
             UpdateConnectedTerritories();
             OnTerritoryConnectionRemoved?.Invoke(this, connection);
@@ -80,12 +124,12 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void UpdateNaturalDistricts()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (Data == null)
             {
                 return;
             }
-            #endif
+#endif
             Data.naturalDistricts = naturalDistricts.Select(district => district != null ? district.Data.id : null).ToList();
         }
         
@@ -102,8 +146,14 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         public override void Initialize(Territory initialData)
         {
+            if (initialData == null)
+            {
+                _logger.LogError("You are trying to initialize a territory using null data", this);
+                return;
+            }
             if (initialData.isInstance == false)
             {
+                _logger.LogError("You are trying to initialize a territory that is not an instance", this);
                 return;
             }
             base.Initialize(initialData);

@@ -3,11 +3,14 @@ using Northgard.GameWorld.Abstraction;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
 using UnityEngine;
+using Zenject;
+using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application
 {
     internal class WorldEditorService : MonoBehaviour, IWorldEditorService
     {
+        [Inject] private ILogger _logger;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldChanged;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldPositionChanged;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldRotationChanged;
@@ -16,11 +19,6 @@ namespace Northgard.GameWorld.Application
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictRemoved;
 
-        public void NewWorld()
-        {
-            throw new System.NotImplementedException();
-        }
-
         private IWorldBehaviour _world;
 
         public IWorldBehaviour World
@@ -28,6 +26,11 @@ namespace Northgard.GameWorld.Application
             get => _world;
             set
             {
+                if (value == null)
+                {
+                    _logger.LogError("You can't set world to null", this);
+                    return;
+                }
                 if (_world != null)
                 {
                     UnsubscribeDelegates();

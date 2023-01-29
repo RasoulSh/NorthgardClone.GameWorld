@@ -4,18 +4,19 @@ using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
-using UnityEngine;
+using Zenject;
+using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application.Behaviours
 {
     internal class WorldBehaviour : GameObjectBehaviour<World>, IWorldBehaviour
     {
+        [Inject] private ILogger _logger;
         private List<TerritoryBehaviour> _territories;
         private List<TerritoryBehaviour> territories => _territories ??= new List<TerritoryBehaviour>();
         public IEnumerable<ITerritoryBehaviour> Territories => territories;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
-        public new IWorldBehaviour Instantiate() => base.Instantiate() as WorldBehaviour;
 
         public new void Destroy()
         {
@@ -30,6 +31,16 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void AddTerritory(ITerritoryBehaviour territory, bool ignoreNotify)
         {
+            if (territory == null)
+            {
+                _logger.LogError("You can't add a null territory", this);
+                return;
+            }
+            if (territories.Contains(territory as TerritoryBehaviour))
+            {
+                _logger.LogWarning("The territory has been added to this world already", this);
+                return;
+            }
             territories.Add(territory as TerritoryBehaviour);
             if (ignoreNotify == false)
             {
@@ -40,6 +51,16 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         public void RemoveTerritory(ITerritoryBehaviour territory)
         {
+            if (territory == null)
+            {
+                _logger.LogError("The territory you want to remove is null", this);
+                return;
+            }
+            if (territories.Contains(territory as TerritoryBehaviour) == false)
+            {
+                _logger.LogError("The territory you want to remove is not contained in this world", this);
+                return;
+            }
             territories.Remove(territory as TerritoryBehaviour);
             UpdateTerritories();
             OnTerritoryRemoved?.Invoke(territory);
@@ -53,19 +74,25 @@ namespace Northgard.GameWorld.Application.Behaviours
 
         private void UpdateTerritories()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (Data == null)
             {
                 return;
             }
-            #endif
+#endif
             Data.territories = territories.Select(territory => territory != null ? Data.id : null).ToList();
         }
 
         public override void Initialize(World initialData)
         {
+            if (initialData == null)
+            {
+                _logger.LogError("You are trying to initialize a world using null data", this);
+                return;
+            }
             if (initialData.isInstance == false)
             {
+                _logger.LogWarning("You are trying to initialize a world that is not an instance", this);
                 return;
             }
             base.Initialize(initialData);

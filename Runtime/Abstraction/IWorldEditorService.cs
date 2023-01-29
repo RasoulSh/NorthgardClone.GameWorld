@@ -12,6 +12,5 @@ namespace Northgard.GameWorld.Abstraction
         event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
         event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;
         event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictRemoved;
-        void NewWorld();
     }
 }
