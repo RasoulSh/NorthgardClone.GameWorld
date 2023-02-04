@@ -4,6 +4,7 @@ using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
+using UnityEngine;
 using Zenject;
 using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
@@ -12,36 +13,63 @@ namespace Northgard.GameWorld.Application.Behaviours
     internal class WorldBehaviour : GameObjectBehaviour<World>, IWorldBehaviour
     {
         [Inject] private ILogger _logger;
-        private List<TerritoryBehaviour> _territories;
-        private List<TerritoryBehaviour> territories => _territories ??= new List<TerritoryBehaviour>();
-        public IEnumerable<ITerritoryBehaviour> Territories => territories;
+        private ITerritoryBehaviour[][] _territories;
+
+        private ITerritoryBehaviour[][] territories
+        {
+            get
+            {
+                if (_territories != null)
+                {
+                    return _territories;
+                }
+
+                _territories = new ITerritoryBehaviour[Data.size.x][];
+                for (int x = 0; x < Data.size.x; x++)
+                {
+                    _territories[x] = new ITerritoryBehaviour[Data.size.y];
+                }
+                return _territories;
+            }
+        }
+        public ITerritoryBehaviour[][] Territories => territories;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;
         public event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
 
         public new void Destroy()
         {
-            foreach (var territory in territories)
+            foreach (var territoryRow in territories)
             {
-                territory.Destroy();
+                foreach (var territory in territoryRow)
+                {
+                    territory.Destroy();   
+                }
             }
             base.Destroy();
         }
 
-        public void AddTerritory(ITerritoryBehaviour territory) => AddTerritory(territory, false);
+        public void AddTerritory(ITerritoryBehaviour territory, Vector2Int pointInWorld) => AddTerritory(territory, pointInWorld, false);
 
-        private void AddTerritory(ITerritoryBehaviour territory, bool ignoreNotify)
+        private void AddTerritory(ITerritoryBehaviour territory, Vector2Int pointInWorld, bool ignoreNotify)
         {
             if (territory == null)
             {
                 _logger.LogError("You can't add a null territory", this);
                 return;
             }
-            if (territories.Contains(territory as TerritoryBehaviour))
+            if (TerritoriesContains(territory))
             {
                 _logger.LogWarning("The territory has been added to this world already", this);
                 return;
             }
-            territories.Add(territory as TerritoryBehaviour);
+            if (territories[pointInWorld.x][pointInWorld.y] != null)
+            {
+                _logger.LogError("There is already a territory in this point", this);
+                return;
+            }
+
+            territory.Data.pointInWorld = pointInWorld;
+            territories[pointInWorld.x][pointInWorld.y] = territory;
             if (ignoreNotify == false)
             {
                 UpdateTerritories();
@@ -49,19 +77,28 @@ namespace Northgard.GameWorld.Application.Behaviours
             }
         }
 
-        public void RemoveTerritory(ITerritoryBehaviour territory)
+        private bool TerritoriesContains(ITerritoryBehaviour territoryBehaviour)
         {
+            foreach (var territoryRow in territories)
+            {
+                if (territoryRow.Contains(territoryBehaviour))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void RemoveTerritory(Vector2Int pointInWorld)
+        {
+            var territory = territories[pointInWorld.x][pointInWorld.y];
             if (territory == null)
             {
-                _logger.LogError("The territory you want to remove is null", this);
+                _logger.LogError("There is no territory in this point", this);
                 return;
             }
-            if (territories.Contains(territory as TerritoryBehaviour) == false)
-            {
-                _logger.LogError("The territory you want to remove is not contained in this world", this);
-                return;
-            }
-            territories.Remove(territory as TerritoryBehaviour);
+
+            territories[pointInWorld.x][pointInWorld.y] = null;
             UpdateTerritories();
             OnTerritoryRemoved?.Invoke(territory);
         }
@@ -80,7 +117,16 @@ namespace Northgard.GameWorld.Application.Behaviours
                 return;
             }
 #endif
-            Data.territories = territories.Select(territory => territory != null ? Data.id : null).ToList();
+            Data.territories = new string[Data.size.x][];
+            for (int x = 0; x < Data.size.x; x++)
+            {
+                Data.territories[x] = new string[Data.size.y];
+                for (int y = 0; y < Data.size.y; y++)
+                {
+                    var territory = territories[x][y];
+                    Data.territories[x][y] = territory?.Data.id;
+                }
+            }
         }
 
         public override void Initialize(World initialData)
@@ -96,10 +142,22 @@ namespace Northgard.GameWorld.Application.Behaviours
                 return;
             }
             base.Initialize(initialData);
-            foreach (var territoryId in initialData.territories)
+            // foreach (var territoryId in initialData.territories)
+            // {
+            //     var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
+            //     AddTerritory(territory, true);
+            // }
+            for (int x = 0; x < Data.size.x; x++)
             {
-                var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
-                AddTerritory(territory, true);
+                for (int y = 0; y < Data.size.y; y++)
+                {
+                    var territoryId = initialData.territories[x][y];
+                    if (territoryId != null)
+                    {
+                        var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
+                        territories[x][y] = territory;
+                    }
+                }
             }
         }
     }

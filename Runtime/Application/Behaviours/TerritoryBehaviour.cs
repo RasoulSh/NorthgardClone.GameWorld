@@ -3,7 +3,9 @@ using System.Linq;
 using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
+using Northgard.GameWorld.Enums;
 using Northgard.GameWorld.Mediation.Commands;
+using Northgard.GameWorld.ValueObjects;
 using Zenject;
 using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
 
@@ -12,18 +14,18 @@ namespace Northgard.GameWorld.Application.Behaviours
     internal class TerritoryBehaviour : GameObjectBehaviour<Territory>, ITerritoryBehaviour
     {
         [Inject] private ILogger _logger;
-        private List<TerritoryBehaviour> _connectedTerritories;
+        private Dictionary<WorldDirection, ITerritoryBehaviour> _connectedTerritories;
         private List<NaturalDistrictBehaviour> _naturalDistricts;
         private List<NaturalDistrictBehaviour> naturalDistricts =>
             _naturalDistricts ??= new List<NaturalDistrictBehaviour>();
-        private List<TerritoryBehaviour> connectedTerritories =>
-            _connectedTerritories ??= new List<TerritoryBehaviour>();
+        private Dictionary<WorldDirection, ITerritoryBehaviour> connectedTerritories =>
+            _connectedTerritories ??= new Dictionary<WorldDirection, ITerritoryBehaviour>();
         public IEnumerable<INaturalDistrictBehaviour> NaturalDistricts => naturalDistricts;
-        public IEnumerable<ITerritoryBehaviour> ConnectedTerritories => connectedTerritories;
+        public IDictionary<WorldDirection, ITerritoryBehaviour> ConnectedTerritories => connectedTerritories;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictAdded;
         public event ITerritoryBehaviour.TerritoryNaturalDistrictDelegate OnNaturalDistrictRemoved;
-        public event ITerritoryBehaviour.TerritoryConnectionDelegate OnTerritoryConnectionAdded;
-        public event ITerritoryBehaviour.TerritoryConnectionDelegate OnTerritoryConnectionRemoved;
+        // public event ITerritoryBehaviour.TerritoryConnectionDelegate OnTerritoryConnectionAdded;
+        // public event ITerritoryBehaviour.TerritoryConnectionDelegate OnTerritoryConnectionRemoved;
 
         public new void Destroy()
         {
@@ -75,51 +77,63 @@ namespace Northgard.GameWorld.Application.Behaviours
             OnNaturalDistrictRemoved?.Invoke(this, naturalDistrict);
         }
 
-        public void AddTerritoryConnection(ITerritoryBehaviour connection) => AddTerritoryConnection(connection, false);
-        
-        private void AddTerritoryConnection(ITerritoryBehaviour connection, bool ignoreNotify)
+        public void AddTerritoryConnection(ITerritoryBehaviour connection, WorldDirection connectDirection)
         {
-            if (connection == null)
-            {
-                _logger.LogError("You are trying to add a null territory connection to this territory", this);
-                return;
-            }
-            if (_connectedTerritories.Contains(connection as TerritoryBehaviour))
-            {
-                _logger.LogWarning("The territory connection has been added to this territory already", this);
-                return;
-            }
-            connectedTerritories.Add(connection as TerritoryBehaviour);
-            if (ignoreNotify == false)
-            {
-                UpdateConnectedTerritories();
-                OnTerritoryConnectionAdded?.Invoke(this, connection);   
-            }
+            throw new System.NotImplementedException();
         }
 
-        public void RemoveTerritoryConnection(ITerritoryBehaviour connection)
-        {
-            if (connection == null)
-            {
-                _logger.LogError("You are trying to remove a null territory connection", this);
-                return;
-            }
+        // public void AddTerritoryConnection(ITerritoryBehaviour connection, WorldDirection connectDirection) => AddTerritoryConnection(connection, connectDirection, false);
+        //
+        // private void AddTerritoryConnection(ITerritoryBehaviour connection, WorldDirection connectDirection, bool ignoreNotify)
+        // {
+        //     if (connection == null)
+        //     {
+        //         _logger.LogError("You are trying to add a null territory connection to this territory", this);
+        //         return;
+        //     }
+        //     if (connectedTerritories.ContainsValue(connection as TerritoryBehaviour))
+        //     {
+        //         _logger.LogWarning("The territory connection has been added to this territory already", this);
+        //         return;
+        //     }
+        //
+        //     if (connectedTerritories.ContainsKey(connectDirection))
+        //     {
+        //         _logger.LogWarning("The connection direction you selected has been occupied by another territory", this);
+        //         return;
+        //     }
+        //     connectedTerritories.Add(connectDirection, connection);
+        //     if (ignoreNotify == false)
+        //     {
+        //         UpdateConnectedTerritories();
+        //         OnTerritoryConnectionAdded?.Invoke(this, connection, connectDirection);   
+        //     }
+        // }
 
-            if (_connectedTerritories.Contains(connection as TerritoryBehaviour) == false)
-            {
-                _logger.LogWarning("You are trying to remove a territory connection that doesn't exist", this);
-                return;
-            }
-            connectedTerritories.Remove(connection as TerritoryBehaviour);
-            UpdateConnectedTerritories();
-            OnTerritoryConnectionRemoved?.Invoke(this, connection);
-        }
+        // public void RemoveTerritoryConnection(ITerritoryBehaviour connection)
+        // {
+        //     if (connection == null)
+        //     {
+        //         _logger.LogError("You are trying to remove a null territory connection", this);
+        //         return;
+        //     }
+        //     if (connectedTerritories.ContainsValue(connection) == false)
+        //     {
+        //         _logger.LogWarning("You are trying to remove a territory connection that doesn't exist", this);
+        //         return;
+        //     }
+        //
+        //     var connectDirection = _connectedTerritories.First(ct => ct.Value == connection).Key;
+        //     connectedTerritories.Remove(connectDirection);
+        //     UpdateConnectedTerritories();
+        //     OnTerritoryConnectionRemoved?.Invoke(this, connection, connectDirection);
+        // }
 
         protected override void OnValidate()
         {
             base.OnValidate();
             UpdateNaturalDistricts();
-            UpdateConnectedTerritories();
+            // UpdateConnectedTerritories();
         }
 
         private void UpdateNaturalDistricts()
@@ -133,16 +147,17 @@ namespace Northgard.GameWorld.Application.Behaviours
             Data.naturalDistricts = naturalDistricts.Select(district => district != null ? district.Data.id : null).ToList();
         }
         
-        private void UpdateConnectedTerritories()
-        {
-#if UNITY_EDITOR
-            if (Data == null)
-            {
-                return;
-            }
-#endif
-            Data.connectedTerritories = connectedTerritories.Select(t => t != null ? t.Data.id : null).ToList();
-        }
+//         private void UpdateConnectedTerritories()
+//         {
+// #if UNITY_EDITOR
+//             if (Data == null)
+//             {
+//                 return;
+//             }
+// #endif
+//             Data.connectedTerritories = connectedTerritories.Select(ct =>
+//                 new TerritoryConnection() { connectionDirection = ct.Key, territoryId = ct.Value.Data.id }).ToList();
+//         }
 
         public override void Initialize(Territory initialData)
         {
@@ -157,12 +172,12 @@ namespace Northgard.GameWorld.Application.Behaviours
                 return;
             }
             base.Initialize(initialData);
-            foreach (var territoryId in initialData.connectedTerritories)
-            {
-                var territory =
-                    Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
-                AddTerritoryConnection(territory, true);
-            }
+            // foreach (var territoryConnection in initialData.connectedTerritories)
+            // {
+            //     var territory =
+            //         Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryConnection.territoryId));
+            //     AddTerritoryConnection(territory, territoryConnection.connectionDirection, true);
+            // }
 
             foreach (var naturalDistrictId in initialData.naturalDistricts)
             {

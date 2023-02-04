@@ -47,10 +47,17 @@ namespace Northgard.GameWorld.Application
             _world.OnRotationChanged += _OnWorldRotationChanged;
             _world.OnTerritoryAdded += _OnTerritoryAdded;
             _world.OnTerritoryRemoved += _OnTerritoryRemoved;
-            foreach (var territory in _world.Territories)
+            foreach (var territoryRow in _world.Territories)
             {
-                territory.OnNaturalDistrictAdded += OnNaturalDistrictAdded;
-                territory.OnNaturalDistrictRemoved += OnNaturalDistrictRemoved;
+                foreach (var territory in territoryRow)
+                {
+                    if (territory == null)
+                    {
+                        continue;
+                    }
+                    territory.OnNaturalDistrictAdded += OnNaturalDistrictAdded;
+                    territory.OnNaturalDistrictRemoved += OnNaturalDistrictRemoved;
+                }
             }
         }
 
@@ -60,10 +67,18 @@ namespace Northgard.GameWorld.Application
             _world.OnRotationChanged -= _OnWorldRotationChanged;
             _world.OnTerritoryAdded -= _OnTerritoryAdded;
             _world.OnTerritoryRemoved -= _OnTerritoryRemoved;
-            foreach (var territory in _world.Territories)
+            foreach (var territoryRow in _world.Territories)
             {
-                territory.OnNaturalDistrictAdded -= OnNaturalDistrictAdded;
-                territory.OnNaturalDistrictRemoved -= OnNaturalDistrictRemoved;
+                foreach (var territory in territoryRow)
+                {
+                    if (territory == null)
+                    {
+                        continue;
+                    }
+
+                    territory.OnNaturalDistrictAdded -= OnNaturalDistrictAdded;
+                    territory.OnNaturalDistrictRemoved -= OnNaturalDistrictRemoved;
+                }
             }
         }
 

@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using Northgard.Core.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
+using UnityEngine;
 
 namespace Northgard.GameWorld.Abstraction.Behaviours
 {
     public interface IWorldBehaviour : IGameObjectBehaviour<World>
     {
-        IEnumerable<ITerritoryBehaviour> Territories { get; }
-        void AddTerritory(ITerritoryBehaviour territory);
-        void RemoveTerritory(ITerritoryBehaviour territory);
+        ITerritoryBehaviour[][] Territories { get; }
+        void AddTerritory(ITerritoryBehaviour territory, Vector2Int pointInWorld);
+        void RemoveTerritory(Vector2Int pointInWorld);
         event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryAdded;
         event ITerritoryBehaviour.TerritoryBehaviourDelegate OnTerritoryRemoved;
         public delegate void WorldBehaviourDelegate(IWorldBehaviour worldBehaviour);
