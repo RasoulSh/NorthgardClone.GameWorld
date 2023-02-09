@@ -4,6 +4,7 @@ using Northgard.Core.Application.Behaviours;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
+using Northgard.GameWorld.ValueObjects;
 using UnityEngine;
 using Zenject;
 using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
@@ -42,6 +43,10 @@ namespace Northgard.GameWorld.Application.Behaviours
             {
                 foreach (var territory in territoryRow)
                 {
+                    if (territory == null)
+                    {
+                        continue;
+                    }
                     territory.Destroy();   
                 }
             }
@@ -117,14 +122,13 @@ namespace Northgard.GameWorld.Application.Behaviours
                 return;
             }
 #endif
-            Data.territories = new string[Data.size.x][];
+            Data.territories = new List<IdPointPair>();
             for (int x = 0; x < Data.size.x; x++)
             {
-                Data.territories[x] = new string[Data.size.y];
                 for (int y = 0; y < Data.size.y; y++)
                 {
                     var territory = territories[x][y];
-                    Data.territories[x][y] = territory?.Data.id;
+                    Data.territories.Add(new IdPointPair(){id = territory?.Data.id, point = new Vector2(x, y)});
                 }
             }
         }
@@ -142,16 +146,12 @@ namespace Northgard.GameWorld.Application.Behaviours
                 return;
             }
             base.Initialize(initialData);
-            // foreach (var territoryId in initialData.territories)
-            // {
-            //     var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
-            //     AddTerritory(territory, true);
-            // }
             for (int x = 0; x < Data.size.x; x++)
             {
                 for (int y = 0; y < Data.size.y; y++)
                 {
-                    var territoryId = initialData.territories[x][y];
+                    var point = new Vector2(x, y);
+                    var territoryId = initialData.territories.Find(t =>  t.point == point).id;
                     if (territoryId != null)
                     {
                         var territory = Mediator.Mediator.Send<FindTerritoryMCmd, ITerritoryBehaviour>(new FindTerritoryMCmd(territoryId));
