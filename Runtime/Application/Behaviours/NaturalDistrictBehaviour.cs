@@ -1,8 +1,8 @@
-﻿using Northgard.Core.Application.Behaviours;
+﻿using Northgard.Core.GameObjectBase;
+using Northgard.Enterprise.Entities.WorldEntities;
 using Northgard.GameWorld.Abstraction.Behaviours;
-using Northgard.GameWorld.Entities;
 using Zenject;
-using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
+using ILogger = Northgard.Core.Infrastructure.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application.Behaviours
 {

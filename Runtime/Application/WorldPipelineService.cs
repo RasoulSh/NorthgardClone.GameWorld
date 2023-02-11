@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Mediator;
+using Northgard.Enterprise.Entities.WorldEntities;
 using Northgard.GameWorld.Abstraction;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Application.Behaviours;
 using Northgard.GameWorld.Configurations;
-using Northgard.GameWorld.Entities;
 using Northgard.GameWorld.Mediation.Commands;
 using UnityEngine;
 using Zenject;
-using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
+using ILogger = Northgard.Core.Infrastructure.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application
 {

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Northgard.Core.Abstraction.Behaviours;
-using Northgard.GameWorld.Entities;
-using Northgard.GameWorld.Enums;
+using Northgard.Core.GameObjectBase;
+using Northgard.Enterprise.Entities.WorldEntities;
 
 namespace Northgard.GameWorld.Abstraction.Behaviours
 {

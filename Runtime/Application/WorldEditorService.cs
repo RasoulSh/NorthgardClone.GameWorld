@@ -1,16 +1,20 @@
-﻿using Northgard.Core.Abstraction.Behaviours;
+﻿using System.Linq;
+using Northgard.Core.Data;
+using Northgard.Core.GameObjectBase;
+using Northgard.Enterprise.DataSets;
+using Northgard.Enterprise.Entities.WorldEntities;
 using Northgard.GameWorld.Abstraction;
 using Northgard.GameWorld.Abstraction.Behaviours;
-using Northgard.GameWorld.Entities;
 using UnityEngine;
 using Zenject;
-using ILogger = Northgard.Core.Abstraction.Logger.ILogger;
+using ILogger = Northgard.Core.Infrastructure.Logger.ILogger;
 
 namespace Northgard.GameWorld.Application
 {
     internal class WorldEditorService : MonoBehaviour, IWorldEditorService
     {
         [Inject] private ILogger _logger;
+        [Inject] private IRepository<WorldDataset> _worldRepository;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldChanged;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldPositionChanged;
         public event IWorldBehaviour.WorldBehaviourDelegate OnWorldRotationChanged;
@@ -39,6 +43,31 @@ namespace Northgard.GameWorld.Application
                 OnWorldChanged?.Invoke(_world);
                 SubscribeDelegates();
             }
+        }
+        
+        public void SaveWorld(string worldName)
+        {
+            var territories = World.Territories.SelectMany(tArr => tArr.Where(t => t != null)).ToList();
+            var worldDataset = new WorldDataset()
+            {
+                id = worldName,
+                world = World.Data,
+                territories = territories.Select(t => t.Data).ToList(),
+                naturalDistricts = territories.SelectMany(t => t.NaturalDistricts.Select(nd => nd.Data)).ToList()
+            };
+            _worldRepository.CreateOrUpdate(worldDataset);
+            _worldRepository.SaveChanges();
+        }
+
+        public WorldDataset LoadWorld(string worldName)
+        {
+            if (_worldRepository.Exists(worldName) == false)
+            {
+                _logger.LogError("Couldn't find the world with name : " + worldName, this);
+                return null;
+            }
+            var world = _worldRepository.Read(worldName);
+            return world;
         }
 
         private void SubscribeDelegates()
