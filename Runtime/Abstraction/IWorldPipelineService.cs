@@ -15,6 +15,8 @@ namespace Northgard.GameWorld.Abstraction
 
         ITerritoryBehaviour InstantiateTerritory(Territory territory);
         INaturalDistrictBehaviour InstantiateNaturalDistrict(NaturalDistrict naturalDistrict);
+        void DestroyTerritory(string id);
+        void DestroyNaturalDistrict(string id);
         void DestroyWorld();
         void Initialize();
         IEnumerable<ITerritoryBehaviour> Territories { get; }

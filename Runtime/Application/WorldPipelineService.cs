@@ -103,6 +103,49 @@ namespace Northgard.GameWorld.Application
             return naturalDistrictInstance as INaturalDistrictBehaviour;
         }
 
+        public void DestroyTerritory(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError("The territory id is not valid", this);
+                return;
+            }
+            var territory = FindTerritory(id);
+            if (territory == null)
+            {
+                _logger.LogError("Couldn't find territory with id : " + id, this);
+                return;
+            }
+
+            var territoryPoint = territory.Data.pointInWorld;
+            var ndIds = territory.Data.naturalDistricts;
+            var ndsToRemove = _naturalDistricts.Keys.Where(nd => ndIds.Contains(nd.id)).ToList();
+            foreach (var naturalDistrict in ndsToRemove)
+            {
+                _naturalDistricts.Remove(naturalDistrict);
+            }
+            _territories.Remove(territory.Data);
+            territory.Destroy();
+            World.RemoveTerritory(territoryPoint);
+        }
+        
+        public void DestroyNaturalDistrict(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogError("The natural district id is not valid", this);
+                return;
+            }
+            var naturalDistrict = FindNaturalDistrict(id);
+            if (naturalDistrict == null)
+            {
+                _logger.LogError("Couldn't find natural district with id : " + id, this);
+                return;
+            }
+            _naturalDistricts.Remove(naturalDistrict.Data);
+            naturalDistrict.Destroy();
+        }
+
         public void Initialize()
         {
             foreach (var naturalDistrict in _naturalDistricts)
