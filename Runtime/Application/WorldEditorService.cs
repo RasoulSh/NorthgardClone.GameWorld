@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using DesignPatterns.AbstractPatterns.StatePattern;
 using Northgard.Core.Data;
 using Northgard.Core.GameObjectBase;
 using Northgard.Enterprise.DataSets;
@@ -44,7 +45,7 @@ namespace Northgard.GameWorld.Application
                 SubscribeDelegates();
             }
         }
-        
+
         public void SaveWorld(string worldName)
         {
             var territories = World.Territories.SelectMany(tArr => tArr.Where(t => t != null)).ToList();

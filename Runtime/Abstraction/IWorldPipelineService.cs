@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Northgard.Enterprise.Entities.WorldEntities;
 using Northgard.GameWorld.Abstraction.Behaviours;
+using UnityEngine;
 
 namespace Northgard.GameWorld.Abstraction
 {
@@ -20,5 +21,6 @@ namespace Northgard.GameWorld.Abstraction
         IEnumerable<INaturalDistrictBehaviour> NaturalDistricts { get; }
         ITerritoryBehaviour FindTerritory(string territoryId);
         INaturalDistrictBehaviour FindNaturalDistrict(string naturalDistrictId);
+        GameObject GenerateFakeNaturalDistrict(string prefabId);
     }
 }

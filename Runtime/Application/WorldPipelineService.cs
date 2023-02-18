@@ -17,6 +17,7 @@ namespace Northgard.GameWorld.Application
         ICommandHandler<FindTerritoryMCmd, ITerritoryBehaviour>,
         ICommandHandler<FindNaturalDistrictMCmd, INaturalDistrictBehaviour>
     {
+        [Inject] private DiContainer _container;
         [Inject] private ILogger _logger;
         [SerializeField] private WorldPipelineConfig config;
         [SerializeField] private Transform worldPlace;
@@ -25,12 +26,12 @@ namespace Northgard.GameWorld.Application
         public IEnumerable<NaturalDistrict> NaturalDistrictPrefabs =>
             config.NaturalDistrictPrefabs.Select(wp => wp.Data);
         public IWorldBehaviour World { get; private set; }
-        private World worldData;
-        private Dictionary<Territory, ITerritoryBehaviour> territores;
-        private Dictionary<NaturalDistrict, INaturalDistrictBehaviour> naturalDistricts;
-        public IEnumerable<ITerritoryBehaviour> Territories => territores.Values;
-        public IEnumerable<INaturalDistrictBehaviour> NaturalDistricts => naturalDistricts.Values;
-        
+        private World _worldData;
+        private Dictionary<Territory, ITerritoryBehaviour> _territories;
+        private Dictionary<NaturalDistrict, INaturalDistrictBehaviour> _naturalDistricts;
+        public IEnumerable<ITerritoryBehaviour> Territories => _territories.Values;
+        public IEnumerable<INaturalDistrictBehaviour> NaturalDistricts => _naturalDistricts.Values;
+
         private void OnEnable()
         {
             Mediator.Mediator.Subscribe(this);
@@ -52,8 +53,8 @@ namespace Northgard.GameWorld.Application
             {
                 DestroyWorld();
             }
-            territores = new Dictionary<Territory, ITerritoryBehaviour>();
-            naturalDistricts = new Dictionary<NaturalDistrict, INaturalDistrictBehaviour>();
+            _territories = new Dictionary<Territory, ITerritoryBehaviour>();
+            _naturalDistricts = new Dictionary<NaturalDistrict, INaturalDistrictBehaviour>();
             World = InstantiateWorld(world);
         }
 
@@ -72,7 +73,7 @@ namespace Northgard.GameWorld.Application
         {
             var worldPrefab = config.FindWorldPrefab(world.prefabId);
             var worldInstance = worldPrefab.Instantiate();
-            worldData = world.isInstance ? world : worldInstance.Data;
+            _worldData = world.isInstance ? world : worldInstance.Data;
             return worldInstance as IWorldBehaviour;
         }
 
@@ -85,7 +86,7 @@ namespace Northgard.GameWorld.Application
             }
             var territoryPrefab = config.FindTerritoryPrefab(territory.prefabId);
             var territoryInstance = territoryPrefab.Instantiate();
-            territores.Add(territory.isInstance ? territory : territoryInstance.Data, territoryInstance as ITerritoryBehaviour);
+            _territories.Add(territory.isInstance ? territory : territoryInstance.Data, territoryInstance as ITerritoryBehaviour);
             return territoryInstance as ITerritoryBehaviour;
         }
 
@@ -98,31 +99,37 @@ namespace Northgard.GameWorld.Application
             }
             var naturalDistrictPrefab = config.FindNaturalDistrictPrefab(naturalDistrict.prefabId);
             var naturalDistrictInstance = naturalDistrictPrefab.Instantiate();
-            naturalDistricts.Add(naturalDistrict.isInstance ? naturalDistrict : naturalDistrictInstance.Data, naturalDistrictInstance as INaturalDistrictBehaviour);
+            _naturalDistricts.Add(naturalDistrict.isInstance ? naturalDistrict : naturalDistrictInstance.Data, naturalDistrictInstance as INaturalDistrictBehaviour);
             return naturalDistrictInstance as INaturalDistrictBehaviour;
         }
-        
+
         public void Initialize()
         {
-            foreach (var naturalDistrict in naturalDistricts)
+            foreach (var naturalDistrict in _naturalDistricts)
             {
                 (naturalDistrict.Value as NaturalDistrictBehaviour).Initialize(naturalDistrict.Key);
             }
-            foreach (var territory in territores)
+            foreach (var territory in _territories)
             {
                 (territory.Value as TerritoryBehaviour).Initialize(territory.Key);
             }
-            (World as WorldBehaviour).Initialize(worldData);
+            (World as WorldBehaviour).Initialize(_worldData);
         }
 
         public ITerritoryBehaviour FindTerritory(string territoryId)
         {
-            return territores.FirstOrDefault(t => t.Key.id == territoryId).Value;
+            return _territories.FirstOrDefault(t => t.Key.id == territoryId).Value;
         }
 
         public INaturalDistrictBehaviour FindNaturalDistrict(string naturalDistrictId)
         {
-            return naturalDistricts.FirstOrDefault(nd => nd.Key.id == naturalDistrictId).Value;
+            return _naturalDistricts.FirstOrDefault(nd => nd.Key.id == naturalDistrictId).Value;
+        }
+
+        public GameObject GenerateFakeNaturalDistrict(string prefabId)
+        {
+            var prefab = config.NaturalDistrictPrefabs.First(ndp => ndp.Data.prefabId == prefabId);
+            return prefab.CloneFakeInstance();
         }
 
         public ITerritoryBehaviour Handle(FindTerritoryMCmd data)

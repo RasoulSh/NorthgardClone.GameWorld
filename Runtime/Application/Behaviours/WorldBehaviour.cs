@@ -2,7 +2,7 @@
 using System.Linq;
 using Northgard.Core.GameObjectBase;
 using Northgard.Enterprise.Entities.WorldEntities;
-using Northgard.Entities.ValueObjects;
+using Northgard.Enterprise.ValueObjects;
 using Northgard.GameWorld.Abstraction.Behaviours;
 using Northgard.GameWorld.Mediation.Commands;
 using UnityEngine;
